@@ -1,41 +1,62 @@
-﻿# Wolf Run
+# Wolf Run — Seasons Remaster
 
-> Jogo web runner lateral com lobo, upgrades e controles mobile.
+Runner lateral em Canvas no qual um lobo percorre cenários dinâmicos, salta obstáculos, coleta itens e evolui com distância, clima e estações.
 
-## Sobre o projeto
+## Estado do projeto
 
-Jogo de corrida lateral (runner) onde o jogador controla um lobo desviando de obstaculos, coletando moedas e usando pulo duplo. Inclui sistema de pontos, vidas, upgrades, mudanca de clima e estacoes, eventos especiais, estrelas e recordes locais. Controles teclado e touch com suporte a tela cheia.
+Aplicação web estática executada no navegador. O repositório não define etapa de instalação nem de compilação, salvo quando indicado abaixo.
 
-## Funcionalidades principais
+## Funcionalidades
 
-- Runner lateral com pulo duplo
-- Coleta de moedas, pontos e sistema de vidas
-- Upgrades, clima, estacoes e eventos especiais
-- Recordes de maior distancia e ultima pontuacao
-- Controles teclado e touch mobile
-- Configuracoes de opacidade e tela cheia
+- Corrida lateral
+- Pulo e obstáculos
+- Moedas, vidas e pontuação
+- Upgrades
+- Clima, turnos e estações
+- Recordes/configurações locais
+- Controles touch
 
-## Tecnologias utilizadas
+## Tecnologias
 
-- HTML
-- CSS
-- JavaScript
-- Netlify
+- HTML5 Canvas
+- CSS e JavaScript incorporados
+- Web Audio/localStorage
 
-## Como executar
+## Estrutura principal
 
-Abra index.html no navegador.
+- `index.html — interface e motor do jogo`
+- `Wolf_Run/, Wolf_Jump/, Wolf_Stop/ e Wolf_death/ — sprites`
+- `audio/ — trilhas e efeitos`
 
-## Deploy / Demonstracao
+## Executar localmente
 
-https://wolfseminternet.netlify.app/
+Não há dependências de pacote nem comando de build registrado para este projeto. Abra `index.html` em um navegador moderno.
 
-## Repositorio
+## Controles
 
-[github.com/thomasrangelbugs/wolf-run-game](https://github.com/thomasrangelbugs/wolf-run-game)
+- Desktop: use os controles indicados na tela para mover e pular.
+- Celular: use os botões laterais/touch.
+- Botões da interface controlam início, tela cheia, áudio e configurações.
 
-## Autor
+## Dados e persistência
 
-**Thomas Rangel Bugs**
+- Configurações usam `wolf_settings_v2` no localStorage.
+- Recordes e progresso local dependem dos dados do navegador.
 
-Desenvolvido para portfolio, estudo e pratica de desenvolvimento web/mobile.
+## Testes
+
+Não foi identificado script de teste automatizado. Valide manualmente os fluxos descritos em **Como usar**, em desktop e em viewport móvel.
+
+## Publicação
+
+O projeto não contém configuração de deploy. Sirva os arquivos estáticos preservando a estrutura de pastas e usando o arquivo de entrada indicado acima.
+
+## Limitações e segurança
+
+- Não há teste automatizado nem configuração de deploy identificada.
+- Áudio pode exigir interação inicial.
+- Confirme licenças de sprites e músicas.
+
+## Repositório
+
+[redobrai-del/thomas-projetos](https://github.com/redobrai-del/thomas-projetos)
