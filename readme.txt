@@ -24,6 +24,9 @@ Wolf Run é um jogo web de corrida lateral desenvolvido para navegador, com cont
 * Controles touch para celular
 * Suporte a tela cheia
 * Layout responsivo
+* Instalação como app (PWA) no PC e no celular
+* Download em ZIP para jogar offline
+* Cache offline com service worker
 
 ## Objetivo
 
@@ -34,6 +37,7 @@ O objetivo do projeto é criar uma experiência de jogo simples, divertida e res
 * HTML
 * CSS
 * JavaScript
+* Progressive Web App
 * Netlify
 
 ## Deploy
@@ -41,6 +45,14 @@ O objetivo do projeto é criar uma experiência de jogo simples, divertida e res
 O projeto está disponível em:
 
 https://wolfseminternet.netlify.app/
+
+## Como instalar / baixar
+
+* **PC:** no site, clique em **INSTALAR APP** (Chrome/Edge) ou use o ícone de instalar na barra de endereço.
+* **Android:** Chrome → menu → Instalar app / Adicionar à tela inicial.
+* **iPhone/iPad:** Safari → Compartilhar → Adicionar à Tela de Início.
+* **ZIP offline:** no menu do jogo, **BAIXAR ZIP** → extrair → abrir `index.html`.
+* **Após limpar o cache:** abra o app uma vez com internet para restaurar automaticamente os arquivos offline.
 
 ## Observação
 

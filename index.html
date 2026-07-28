@@ -3,7 +3,16 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e1f31" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Wolf Run" />
+<meta name="description" content="Wolf Run — Seasons Remaster. Baixe e jogue no PC ou no celular." />
 <title>WOLF RUN — Seasons Remaster</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Oxanium:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -184,6 +193,62 @@
   .btn.secondary {
     border-color: rgba(255, 189, 103, 0.42);
     background: linear-gradient(180deg, rgba(92, 63, 32, 0.88), rgba(52, 37, 22, 0.88));
+  }
+
+  .btn.install {
+    border-color: rgba(120, 210, 160, 0.45);
+    background: linear-gradient(180deg, rgba(28, 86, 62, 0.95), rgba(16, 48, 38, 0.95));
+  }
+
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+  }
+
+  .install-note {
+    margin: 8px auto 0;
+    max-width: 760px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .download-progress {
+    display: none;
+    margin-top: 10px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+
+  .download-progress.visible {
+    display: block;
+  }
+
+  .download-progress > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #55d8ff, #7ce0a8);
+    transition: width 0.2s ease;
+  }
+
+  .howto-list {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 13px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .howto-list b {
+    color: #f0f7ff;
   }
 
   button:focus-visible,
@@ -640,9 +705,28 @@
         <div class="row" style="margin-bottom: 12px;">
           <button id="startBtn" class="btn primary" type="button">▶ START</button>
           <button id="fsBtn" class="btn secondary" type="button">⛶ TELA CHEIA</button>
+          <button id="installBtn" class="btn install" type="button" hidden>⬇ INSTALAR APP</button>
+          <button id="downloadBtn" class="btn secondary" type="button">⬇ BAIXAR ZIP</button>
         </div>
+        <p class="install-note" id="installNote">
+          Instale no PC ou celular para jogar como app, ou baixe o ZIP e abra o <b>index.html</b> offline.
+        </p>
+        <p class="install-note" id="offlineStatus" role="status" aria-live="polite"></p>
+        <div class="download-progress" id="downloadProgress" aria-hidden="true"><span id="downloadBar"></span></div>
 
         <div class="section">
+          <details id="installSec">
+            <summary>Baixar e jogar no PC ou celular</summary>
+            <ul class="howto-list">
+              <li><b>PC (Chrome/Edge):</b> clique em <b>INSTALAR APP</b> ou no ícone ⊕ / “Instalar” na barra de endereço.</li>
+              <li><b>Android:</b> abra no Chrome → menu ⋮ → <b>Instalar app</b> / <b>Adicionar à tela inicial</b>.</li>
+              <li><b>iPhone/iPad:</b> Safari → botão Compartilhar → <b>Adicionar à Tela de Início</b>.</li>
+              <li><b>ZIP offline:</b> use <b>BAIXAR ZIP</b>, extraia a pasta e abra <b>index.html</b> no navegador.</li>
+              <li><b>Após limpar o cache:</b> abra o app uma vez com internet para restaurar automaticamente os arquivos offline.</li>
+            </ul>
+            <small class="hint">Com o app instalado (ou após a 1ª visita online), o jogo fica disponível offline.</small>
+          </details>
+
           <details id="cfgSec">
             <summary>Configurações</summary>
             <div class="cfg-grid">
@@ -708,6 +792,12 @@
   const overlay = $('overlay');
   const startBtn = $('startBtn');
   const fsBtn = $('fsBtn');
+  const installBtn = $('installBtn');
+  const downloadBtn = $('downloadBtn');
+  const installNote = $('installNote');
+  const offlineStatus = $('offlineStatus');
+  const downloadProgress = $('downloadProgress');
+  const downloadBar = $('downloadBar');
   const muteBtn = $('muteBtn');
   const weatherLabel = $('weatherLabel');
   const turnoLabel = $('turno');
@@ -716,6 +806,7 @@
   const groundVal = $('groundVal');
   const cfgSec = $('cfgSec');
   const upgSec = $('upgSec');
+  const installSec = $('installSec');
   const buyBtn = $('buyBtn');
   const starsEl = $('stars');
   const starsEl2 = $('stars2');
@@ -2825,6 +2916,7 @@
     startGame();
     cfgSec.open = false;
     upgSec.open = false;
+    if (installSec) installSec.open = false;
   });
 
   fsBtn.addEventListener('click', async () => {
@@ -2844,6 +2936,225 @@
     fitCanvas();
     updateMobileControlVisibility();
   });
+
+  let deferredInstallPrompt = null;
+
+  function isStandaloneApp() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+  }
+
+  function refreshInstallUI() {
+    if (isStandaloneApp()) {
+      installBtn.hidden = true;
+      installNote.textContent = 'App instalado neste dispositivo.';
+      return;
+    }
+    if (deferredInstallPrompt) {
+      installBtn.hidden = false;
+      installBtn.textContent = '⬇ INSTALAR APP';
+      installNote.textContent = 'Instale no PC ou celular para jogar como app, ou baixe o ZIP e abra o index.html offline.';
+    } else {
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      installBtn.hidden = false;
+      installBtn.textContent = ios ? '↗ COMO INSTALAR' : '⬇ INSTALAR APP';
+      installNote.textContent = ios
+        ? 'No iPhone/iPad: Safari → Compartilhar → Adicionar à Tela de Início. Ou use BAIXAR ZIP.'
+        : 'Clique em INSTALAR APP para ver as opções disponíveis neste navegador.';
+    }
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    refreshInstallUI();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    refreshInstallUI();
+    requestPersistentStorage();
+    prepareOfflineUse();
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      refreshInstallUI();
+      if (installSec) installSec.open = true;
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    try {
+      await deferredInstallPrompt.userChoice;
+    } catch {}
+    deferredInstallPrompt = null;
+    refreshInstallUI();
+  });
+
+  const OFFLINE_FILES = [
+    'index.html',
+    'manifest.webmanifest',
+    'sw.js',
+    'netlify.toml',
+    'README.md',
+    'readme.txt',
+    'icons/icon-192.png',
+    'icons/icon-512.png',
+    'icons/apple-touch-icon.png',
+    'Wolf_Stop/1.png',
+    'Wolf_death/1.png',
+    'Wolf_Run/1.png', 'Wolf_Run/2.png', 'Wolf_Run/3.png', 'Wolf_Run/4.png', 'Wolf_Run/5.png',
+    'Wolf_Run/6.png', 'Wolf_Run/7.png', 'Wolf_Run/8.png', 'Wolf_Run/9.png',
+    'Wolf_Jump/1.png', 'Wolf_Jump/2.png', 'Wolf_Jump/3.png', 'Wolf_Jump/4.png', 'Wolf_Jump/5.png',
+    'Wolf_Jump/6.png', 'Wolf_Jump/7.png', 'Wolf_Jump/8.png', 'Wolf_Jump/9.png',
+    'Wolf_Jump/10.png', 'Wolf_Jump/11.png',
+    'audio/night.mp3',
+    'audio/trilha.mp3', 'audio/trilha1.mp3', 'audio/trilha2.mp3', 'audio/trilha3.mp3',
+    'audio/trilha4.mp3', 'audio/trilha5.mp3', 'audio/trilha6.mp3', 'audio/trilha7.mp3',
+    'audio/trilha8.mp3', 'audio/trilha9.mp3', 'audio/trilha10.mp3',
+  ];
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) {
+        resolve();
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Falha ao carregar ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  function setDownloadProgress(done, total) {
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    downloadProgress.classList.add('visible');
+    downloadProgress.setAttribute('aria-hidden', 'false');
+    downloadBar.style.width = pct + '%';
+  }
+
+  downloadBtn.addEventListener('click', async () => {
+    if (downloadBtn.disabled) return;
+    downloadBtn.disabled = true;
+    const prevLabel = downloadBtn.textContent;
+    downloadBtn.textContent = 'Preparando…';
+    setDownloadProgress(0, OFFLINE_FILES.length);
+
+    try {
+      await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+      if (!window.JSZip) throw new Error('JSZip indisponível');
+
+      const zip = new JSZip();
+      const root = zip.folder('Wolf_Game');
+      let done = 0;
+
+      for (const path of OFFLINE_FILES) {
+        downloadBtn.textContent = `Baixando ${done + 1}/${OFFLINE_FILES.length}`;
+        const res = await fetch(path);
+        if (!res.ok) throw new Error('Não foi possível obter ' + path);
+        const buf = await res.arrayBuffer();
+        root.file(path, buf);
+        done += 1;
+        setDownloadProgress(done, OFFLINE_FILES.length);
+      }
+
+      downloadBtn.textContent = 'Compactando…';
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, (meta) => {
+        downloadBar.style.width = Math.max(5, Math.round(meta.percent)) + '%';
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Wolf_Game_Offline.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+      installNote.textContent = 'ZIP baixado. Extraia a pasta e abra index.html no navegador.';
+    } catch (err) {
+      console.error(err);
+      alert('Falha ao gerar o ZIP. Verifique a conexão e tente de novo.\n' + (err?.message || err));
+    } finally {
+      downloadBtn.disabled = false;
+      downloadBtn.textContent = prevLabel;
+      setTimeout(() => {
+        downloadProgress.classList.remove('visible');
+        downloadProgress.setAttribute('aria-hidden', 'true');
+        downloadBar.style.width = '0%';
+      }, 1200);
+    }
+  });
+
+  let offlinePreparationId = 0;
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('./sw.js');
+        await navigator.serviceWorker.ready;
+        await prepareOfflineUse(registration);
+        if (isStandaloneApp()) requestPersistentStorage();
+      } catch (err) {
+        console.warn('Service worker não registrado:', err);
+        offlineStatus.textContent = navigator.onLine
+          ? 'Não foi possível preparar o modo offline. Tente recarregar a página.'
+          : 'Conecte-se à internet uma vez para restaurar os arquivos do jogo.';
+      }
+    });
+
+    window.addEventListener('online', () => prepareOfflineUse());
+    navigator.serviceWorker.addEventListener('controllerchange', () => prepareOfflineUse());
+  }
+
+  async function requestPersistentStorage() {
+    if (!navigator.storage?.persist) return;
+    try {
+      await navigator.storage.persist();
+    } catch {}
+  }
+
+  async function prepareOfflineUse(registration) {
+    if (!('serviceWorker' in navigator)) return;
+    const preparationId = ++offlinePreparationId;
+    offlineStatus.textContent = navigator.onLine
+      ? 'Preparando o jogo para abrir offline…'
+      : 'Modo offline ativo.';
+
+    try {
+      const reg = registration || await navigator.serviceWorker.ready;
+      const worker = reg.active || reg.waiting || reg.installing;
+      if (!worker) throw new Error('Service worker indisponível');
+
+      const result = await new Promise((resolve, reject) => {
+        const channel = new MessageChannel();
+        const timeout = setTimeout(() => reject(new Error('Tempo esgotado')), 120000);
+        channel.port1.onmessage = (event) => {
+          clearTimeout(timeout);
+          resolve(event.data);
+        };
+        worker.postMessage({ type: 'PREPARE_OFFLINE' }, [channel.port2]);
+      });
+
+      if (!result?.ready) throw new Error(result?.error || 'Cache incompleto');
+      if (preparationId !== offlinePreparationId) return;
+      offlineStatus.textContent = result.mediaFailures
+        ? 'Jogo pronto para abrir offline. Algumas músicas precisam de conexão.'
+        : 'Jogo pronto para abrir offline.';
+    } catch (err) {
+      console.warn('Modo offline não preparado:', err);
+      if (preparationId !== offlinePreparationId) return;
+      offlineStatus.textContent = navigator.onLine
+        ? 'Não foi possível completar o modo offline. Recarregue para tentar novamente.'
+        : 'O cache foi limpo. Abra o app com internet uma vez para restaurá-lo.';
+    }
+  }
+
+  refreshInstallUI();
 
   btnOpacityInput.addEventListener('input', () => {
     settings.btnOpacity = clamp(Number(btnOpacityInput.value) || defaultSettings.btnOpacity, 0.1, 1);
