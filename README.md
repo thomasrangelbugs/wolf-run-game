@@ -1,4 +1,4 @@
-# Wolf Run — Seasons Remaster
+﻿# Wolf Run — Seasons Remaster
 
 Runner lateral em Canvas no qual um lobo percorre cenários dinâmicos, salta obstáculos, coleta itens e evolui com distância, clima e estações.
 
@@ -77,6 +77,16 @@ Sirva os arquivos estáticos preservando a estrutura de pastas. O `netlify.toml`
 - Instalação PWA exige HTTPS (ou localhost).
 - Confirme licenças de sprites e músicas.
 
+
+## Requisitos
+
+- Navegador moderno (Chrome, Edge, Firefox ou Safari atualizado)
+- Conexão com a internet apenas para recursos externos integrados, quando aplicável
 ## Repositório
 
-[redobrai-del/thomas-projetos](https://github.com/redobrai-del/thomas-projetos)
+[thomasrangelbugs/wolf-run-game](https://github.com/thomasrangelbugs/wolf-run-game)
+
+
+## Autor
+
+**Thomas Rangel Bugs** — [github.com/thomasrangelbugs](https://github.com/thomasrangelbugs)
